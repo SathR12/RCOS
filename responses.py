@@ -1,12 +1,12 @@
-import bs4
-import requests 
 import csv
 import os
 from dotenv import load_dotenv
 import openai
 
-load_dotenv()
+# Local functions 
+from datascraper import scrape
 
+load_dotenv()
 
 # Note: you are not suppose to include the 'API_KEY7=' part if directly using without .env
 openai.api_key = os.getenv("API_KEY7")
@@ -34,12 +34,12 @@ def get_response(prompt):
     return reply_content
 
 def print_chat_history():
-    print("\n### CONVERSATION HISTORY ### ")
+    print("\n### CONVERSATION HISTORY ###\n")
     for message in messages: 
         role = message["role"].upper()
         # Note: prints each message from the message history with respect to the role
         print(f"{role}: {message["content"]}")
-    print("\n### END OF CONVERSATION HISTORY ###")
+    print("\n### END OF CONVERSATION HISTORY ###\n")
 
 def save_to_csv(filename, mode, role, content):
     with open(filename, mode = mode, newline = "") as file:
@@ -47,22 +47,33 @@ def save_to_csv(filename, mode, role, content):
         writer.writerow([role, content])
 
 if __name__ == "__main__":
-    print("\n### Starting chat ###")
+    print("\n### Starting chat ###\n")
 
     # Need to write the CSV headers
     # Returns file object
     save_to_csv(chat_history_file, "w", "Role", "Content")
 
     while True:
-        query = input("Enter your query: ")
+        query = input("\nEnter your query: ")
         if query == "exit":
             break
-        if query == "print history":
+        elif query == "print history":
             print_chat_history()
+        elif query.startswith("scrape "):
+            stock = query.split()[1]
+            link = "https://finance.yahoo.com/quote/" + stock 
+            print("link", link)
+            data = scrape(link)
+            print(data)
+            if data:
+                response = get_response(f"For prompts relating to financial analysis, analyze and use the scraped data provided:\n{data}")
+                save_to_csv(chat_history_file, "a", "USER", f"Analyze: {link}")
+                save_to_csv(chat_history_file, "a", "ASSISTANT", response)
+                print(f"\nAI Analysis:\n{response}")
         else:
             response = get_response(query)
             save_to_csv(chat_history_file, "a", "USER", query)
             save_to_csv(chat_history_file, "a", "ASSISTANT", response)
-            print(f"AI: {response}")
+            print(f"\nAI:\n{response}")
 
         
