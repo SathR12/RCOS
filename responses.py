@@ -8,7 +8,7 @@ from datascraper import scrape
 
 load_dotenv()
 
-# Note: you are not suppose to include the 'API_KEY7=' part if directly using without .env
+# Note: you are not suppose to include the 'API_KEY7=' part if directly using without .env file
 openai.api_key = os.getenv("API_KEY7")
 chat_history_file = r"chat_history.csv"
 
@@ -61,13 +61,10 @@ if __name__ == "__main__":
             print_chat_history()
         elif query.startswith("scrape "):
             stock = query.split()[1]
-            link = "https://finance.yahoo.com/quote/" + stock 
-            print("link", link)
-            data = scrape(link)
-            print(data)
+            data = scrape(stock)
             if data:
                 response = get_response(f"For prompts relating to financial analysis, analyze and use the scraped data provided:\n{data}")
-                save_to_csv(chat_history_file, "a", "USER", f"Analyze: {link}")
+                save_to_csv(chat_history_file, "a", "USER", f"Analyze: {stock}")
                 save_to_csv(chat_history_file, "a", "ASSISTANT", response)
                 print(f"\nAI Analysis:\n{response}")
         else:
