@@ -6,6 +6,8 @@ from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.options import Options
 
+# Code is based off https://brightdata.com/blog/how-tos/scrape-yahoo-finance-guide 
+
 debug = False
 
 def scrape(stock):
