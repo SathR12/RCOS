@@ -8,7 +8,7 @@ from selenium.webdriver.chrome.options import Options
 
 # Code is based off https://brightdata.com/blog/how-tos/scrape-yahoo-finance-guide 
 
-debug = False
+debug = True
 
 def scrape(stock):
 
@@ -50,17 +50,56 @@ def scrape(stock):
 
         previous_close_price = previous_close_element.text
 
+        # Scraping the weekly range
+        weekly_range_element = WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located(
+                (By.CSS_SELECTOR, 'li:has(span[title="52 Week Range"]) span.value')
+            )
+        )
+        
+        # Inspecting the CSS page, the weekly range is a string separated by a ' - ' for low and high
+        weekly_range = weekly_range_element.text 
+        weekly_range_list = weekly_range.split(" - ")
+        yearly_week_low = weekly_range_list[0]
+        yearly_week_high = weekly_range_list[1]
+
+        # Scraping the stock volume 
+        stock_volume_element = WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located(
+                (By.CSS_SELECTOR, f'fin-streamer[data-symbol = "{stock}"][data-field = "regularMarketVolume"]')
+            )
+        )
+
+        stock_volume = stock_volume_element.text
+
+        # Scraping the P/E ratio 
+        stock_pe_ratio_element = WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located(
+                (By.CSS_SELECTOR, f'fin-streamer[data-symbol = "{stock}"][data-field = "trailingPE"]')
+            )
+        )
+        stock_pe_ratio = stock_pe_ratio_element.text
+
         # Saving into dictionary format to feed the scraped data into the model 
         data = {
             "stock_symbol": stock, 
             "current_stock_price": stock_price,
-            "previous_close_price": previous_close_price
+            "previous_close_price": previous_close_price,
+            "pe_ratio": stock_pe_ratio,
+            "stock_volume": stock_volume,
+            "52-week_low": yearly_week_low,
+            "52-week_high": yearly_week_high
         }
 
         if debug:
             print(f"Stock Price for {stock}: {stock_price}")
             print(f"Previous Close for {stock}: {previous_close_price}")
+            print(f"Stock volume for {stock}: {stock_volume}")
+            print(f"Stock P/E ratio for {stock}: {stock_pe_ratio}")
+            print(f"52-week low: {yearly_week_low}")
+            print(f"52-week high: {yearly_week_high}")
             print(f"Printing dictionary of formatted entries:\n{data}")
+
         
         return data
 
